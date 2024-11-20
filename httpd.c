@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 
 
 void handle_request(int nfd)
@@ -25,7 +26,7 @@ void handle_request(int nfd)
    {
       perror("getline failed");
       close(nfd);
-      return -1;
+      return;
    }
 
    char type[8];
@@ -78,7 +79,7 @@ void handle_request(int nfd)
 
       char header[512];
       if(strcmp(type, "GET") == 0 || strcmp(type, "HEAD") == 0){
-         snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: %ld\r\n\r\n", file_stat.st_size);
+         snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: %lld\r\n\r\n", file_stat.st_size);
          write(nfd, header, strlen(header));
 
          if(strcmp(type, "GET") == 0){
@@ -160,7 +161,7 @@ int main(int argc, char *argv[]){
 
     short port = atoi(argv[1]);
 
-    if (port < 1024 || port > 65535){
+    if (port < 1024 || port > (short) 65535){
         perror("Error: port needs to be in between 1024 and 65535");
         return -1;
     }
