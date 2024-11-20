@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <string.h>
 
+void handle_cgi(int nfd, char *filename, char *query);
 
 void handle_request(int nfd)
 {
