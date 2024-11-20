@@ -135,6 +135,7 @@ void run_service(int fd)
 
 }
 void handle_cgi(int nfd, char *filename, char *query){
+   printf("are you getting here?-in cgi request?\n");
    if(strncmp(filename, "/cgi-like/", 10) != 0){
       char *response = "HTTP/1.0 403 Permission Denied\r\nContent-Type: text/html\r\nContent-Length: 40\r\n\r\n<html><body>403 Permission Denied</body></html>";
       write(nfd, response, strlen(response));
@@ -142,7 +143,7 @@ void handle_cgi(int nfd, char *filename, char *query){
    }
    char file_path[1024];
    snprintf(file_path, sizeof(file_path), "./cgi-like/%s", filename + 10);
-
+   printf("are you getting here?-before fork\n");
    pid_t pid = fork();
    if(pid < 0){
       const char *response = "HTTP/1.0 500 Internal Error\r\nContent-Type: text/html\r\nContent-Length: 41\r\n\r\n<html><body>500 Internal Server Error</body></html>";
@@ -157,7 +158,7 @@ void handle_cgi(int nfd, char *filename, char *query){
    }else{
       wait(NULL);
    }
-
+   printf("are you getting here?-after fork\n");
 }
 
 void handle_signal(int sig){
