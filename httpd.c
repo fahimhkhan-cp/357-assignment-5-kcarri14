@@ -161,7 +161,7 @@ int main(int argc, char *argv[]){
 
     short port = atoi(argv[1]);
 
-    if (port < 1024 || port > (short) 65535){
+    if (port < 1024 || (int) port > 65535){
         perror("Error: port needs to be in between 1024 and 65535");
         return -1;
     }
