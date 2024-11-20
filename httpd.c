@@ -29,14 +29,14 @@ void handle_request(int nfd)
       close(nfd);
       return;
    }
-     printf("are you getting here?-after getline");
+     printf("are you getting here?-after getline\n");
 
    char type[8];
    char filename[1024];
    char http_version[16];
 
    int line_read = sscanf(line, "%s %s %s", type, filename, http_version);
-   printf("are you getting here?-after line read");
+   printf("are you getting here?-after line read\n");
    if(line_read != 3 || (strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 35\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
@@ -74,12 +74,12 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
-   printf("are you getting here?-before filepath");
+   printf("are you getting here?-before filepath\n");
    char filepath[1024];
    snprintf(filepath, sizeof(filepath), "./%s", filename);
 
    int file = open(filepath, O_RDONLY);
-   printf("are you getting here?-after opening file");
+   printf("are you getting here?-after opening file\n");
    if(file == -1){
       char *response = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 38\r\n\r\n<html><body>404 Not Found</body></html>";
       write(nfd, response, strlen(response));
@@ -121,7 +121,7 @@ void run_service(int fd)
         }else if(pid == 0){
             close(fd);
             printf("Connection established\n");
-            printf("%d" , nfd);
+            printf("%d\n" , nfd);
             handle_request(nfd);
             printf("Connection closed\n");
             close(nfd);
@@ -188,9 +188,9 @@ int main(int argc, char *argv[]){
    }
 
    printf("listening on port: %d\n", port);
-   printf("are you getting here?-before run service");
+   printf("are you getting here?-before run service\n");
    run_service(fd);
-   printf("are you getting here?-after run service");
+   printf("are you getting here?-after run service\n");
    close(fd);
 
    return 0;
