@@ -28,13 +28,14 @@ void handle_request(int nfd)
       close(nfd);
       return;
    }
+     printf("are you getting here?-after getline");
 
    char type[8];
    char filename[1024];
    char http_version[16];
 
    int line_read = sscanf(line, "%s %s %s", type, filename, http_version);
-
+   printf("are you getting here?-after line read");
    if(line_read != 3 || (strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 35\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
@@ -42,9 +43,17 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
+
    if((strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 44\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
+      free(line);
+      fclose(network);
+      return;
+   }
+
+   if(strncmp(filename, "/cgi-like/", 10) == 0){
+      handle_cgi(nfd, filename, line);
       free(line);
       fclose(network);
       return;
@@ -64,12 +73,12 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
-
+   printf("are you getting here?-before filepath");
    char filepath[1024];
    snprintf(filepath, sizeof(filepath), "./%s", filename);
 
    int file = open(filepath, O_RDONLY);
-
+   printf("are you getting here?-after opening file");
    if(file == -1){
       char *response = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 38\r\n\r\n<html><body>404 Not Found</body></html>";
       write(nfd, response, strlen(response));
@@ -177,7 +186,9 @@ int main(int argc, char *argv[]){
    }
 
    printf("listening on port: %d\n", port);
+   printf("are you getting here?-before run service");
    run_service(fd);
+   printf("are you getting here?-after run service");
    close(fd);
 
    return 0;
