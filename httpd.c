@@ -44,7 +44,7 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
-
+   printf("are you getting here?-after get \n");
    if((strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 44\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
@@ -52,14 +52,14 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
-
+   printf("are you getting here?-after more errors\n");
    if(strncmp(filename, "/cgi-like/", 10) == 0){
       handle_cgi(nfd, filename, line);
       free(line);
       fclose(network);
       return;
    }
-
+   printf("are you getting here?-after cgi like?\n");
    if(filename[0] == '/'){
       while(filename[0] != '\0'){
          filename[0] = filename[1];
