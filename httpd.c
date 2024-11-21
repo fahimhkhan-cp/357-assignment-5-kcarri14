@@ -146,6 +146,7 @@ void handle_cgi(int nfd, char *filename, char *query){
    }
    char file_path[1024];
    snprintf(file_path, sizeof(file_path), "./cgi-like/%s", filename + 10);
+   printf("filepath %s\n", file_path);
    printf("are you getting here?-before fork\n");
    pid_t pid = fork();
    if(pid < 0){
@@ -153,19 +154,23 @@ void handle_cgi(int nfd, char *filename, char *query){
       write(nfd, response, strlen(response));
       return;
    }else if(pid == 0){
+      printf("In Child process\n");
       char *arguments[] = {file_path, query, NULL};
       execvp(file_path, arguments);
+      printf("Child process successful\n");
       const char *response = "HTTP/1.0 500 Internal Error\r\nContent-Type: text/html\r\nContent-Length: 41\r\n\r\n<html><body>500 Internal Server Error</body></html>";
       write(nfd, response, strlen(response));
+      
       return;
    }else{
+      printf("In parent process\n");
       wait(NULL);
    }
    printf("are you getting here?-after fork\n");
 }
 
 void handle_signal(int sig){
-    while(waitpid(-1,NULL,WNOHANG));
+    while(waitpid(-1,NULL,WNOHANG) >0);
 }
 
 int main(int argc, char *argv[]){
