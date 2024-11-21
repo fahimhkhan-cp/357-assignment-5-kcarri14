@@ -58,10 +58,8 @@ void handle_request(int nfd)
    printf("are you getting here?-after more errors\n");
    if(strncmp(filename, "/cgi-like/", 10) == 0){
       handle_cgi(nfd, filename, line);
-      free(line);
-      fclose(network);
-      return;
    }
+   
    printf("are you getting here?-after cgi like?\n");
    if(filename[0] == '/'){
       while(filename[0] != '\0'){
