@@ -173,13 +173,12 @@ void handle_cgi(int nfd, char *filename, char *query){
       //printf("In Child process\n");
       char *arguments[] = {file_path, query, NULL};
       execvp(file_path, arguments);
-      perror("exec fail");
       //printf("Child process successful\n");
    }else{
       //printf("In parent process\n");
       wait(NULL);
    }
-   printf("are you getting here?-after fork\n");
+   //printf("are you getting here?-after fork\n");
 }
 
 void handle_signal(int sig){
