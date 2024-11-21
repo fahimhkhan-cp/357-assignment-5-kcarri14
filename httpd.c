@@ -12,6 +12,7 @@
 
 void handle_cgi(int nfd, char *filename, char *query);
 
+//handles the request made by the browser
 void handle_request(int nfd)
 {
    FILE *network = fdopen(nfd, "r");
@@ -23,7 +24,7 @@ void handle_request(int nfd)
    size_t size;
    ssize_t num;
 
-
+//gets the line from the broswer in order to parse it
    if ((num = getline(&line, &size, network)) < 0)
    {
       perror("getline failed");
@@ -37,12 +38,14 @@ void handle_request(int nfd)
    char type[8];
    char filename[1024];
    char http_version[16];
-
+//parses the line and puts into buffers to be used later
    int line_read = sscanf(line, "%s %s %s", type, filename, http_version);
    // printf("are you getting here?-after line read\n");
    // printf("type: %s\n" ,type);
    // printf("name: %s\n" ,filename);
    // printf("version: %s\n" ,http_version);
+
+//CHECKS FOR ERRORS IN THE LINE
    if(line_read != 3 || (strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 35\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
@@ -72,11 +75,11 @@ void handle_request(int nfd)
    }
 
    //printf("are you getting here?-after cgi like?\n");
-   
+//GETS THE FILE PATH FROM THE REQUESTED FILENAME   
    //printf("are you getting here?-before filepath\n");
    char filepath[1024];
    snprintf(filepath, sizeof(filepath), "./%s", filename);
-
+//OPENS THE FILEPATH
    int file = open(filepath, O_RDONLY);
    //printf("are you getting here?-after opening file\n");
    if(file == -1){
@@ -86,6 +89,7 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }else{
+//OPENS STUCT TO GET THE STATS ON THE FILEPATH TO BE USED LATER      
       struct stat file_stat;
       fstat(file, &file_stat);
       if (file == -1) {
@@ -104,10 +108,10 @@ void handle_request(int nfd)
          fclose(network);
          return;
       }
-
+//CHECKS IF THE TYPE IS GET OR HEAD AND DOES THE FOLLOWING REQUIREMENTS
       char header[512];
       if(strcmp(type, "GET") == 0 || strcmp(type, "HEAD") == 0){
-         snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: %ld\r\n\r\n", file_stat.st_size);
+         snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: %lld\r\n\r\n", file_stat.st_size);
          write(nfd, header, strlen(header));
 
          if(strcmp(type, "GET") == 0){
@@ -153,6 +157,7 @@ void run_service(int fd)
 
 
 }
+//HANDLES THE CGI-LIKE COMMAND
 void handle_cgi(int nfd, char *filename, char *query){
    //printf("are you getting here?-in cgi request?\n");
    if(strncmp(filename, "/cgi-like/", 10) != 0){
@@ -180,7 +185,7 @@ void handle_cgi(int nfd, char *filename, char *query){
    }
    //printf("are you getting here?-after fork\n");
 }
-
+//HANDLES SIGNALS
 void handle_signal(int sig){
     while(waitpid(-1,NULL,WNOHANG) >0);
 }
@@ -190,7 +195,7 @@ int main(int argc, char *argv[]){
         perror("Error: need the port number");
         return -1;
     }
-
+//CHECKS PORT NAME
     short port = atoi(argv[1]);
 
     if (port < 1024 || (int) port > 65535){
