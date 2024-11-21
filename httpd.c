@@ -55,18 +55,6 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
-   printf("are you getting here?-after more errors\n");
-   if(strncmp(filename, "/cgi-like/", 10) == 0){
-      handle_cgi(nfd, filename, line);
-   }
-   
-   printf("are you getting here?-after cgi like?\n");
-   if(filename[0] == '/'){
-      while(filename[0] != '\0'){
-         filename[0] = filename[1];
-         (*filename)++;
-      }
-   }
 
    if(strstr(filename, "..") != NULL){
       char *response = "HTTP/1.0 403 Permission Denied\r\nContent-Type: text/html\r\nContent-Length: 40\r\n\r\n<html><body>403 Permission Denied</body></html>";
@@ -75,6 +63,13 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
+   printf("are you getting here?-after more errors\n");
+   if(strncmp(filename, "/cgi-like/", 10) == 0){
+      handle_cgi(nfd, filename, line);
+   }
+
+   printf("are you getting here?-after cgi like?\n");
+   
    printf("are you getting here?-before filepath\n");
    char filepath[1024];
    snprintf(filepath, sizeof(filepath), "./%s", filename);
