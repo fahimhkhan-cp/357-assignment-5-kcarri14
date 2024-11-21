@@ -158,10 +158,6 @@ void handle_cgi(int nfd, char *filename, char *query){
       char *arguments[] = {file_path, query, NULL};
       execvp(file_path, arguments);
       printf("Child process successful\n");
-      const char *response = "HTTP/1.0 500 Internal Error\r\nContent-Type: text/html\r\nContent-Length: 41\r\n\r\n<html><body>500 Internal Server Error</body></html>";
-      write(nfd, response, strlen(response));
-      
-      return;
    }else{
       printf("In parent process\n");
       wait(NULL);
