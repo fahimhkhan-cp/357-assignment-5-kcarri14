@@ -86,18 +86,17 @@ void handle_request(int nfd)
       fstat(file, &file_stat);
 
       char header[512];
-      if(strcmp(type, "HEAD") == 0){
+      if(strcmp(type, "GET") == 0 || strcmp(type, "HEAD") == 0){
          snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: %ld\r\n\r\n", file_stat.st_size);
          write(nfd, header, strlen(header));
-         
-     }
-      if(strcmp(type, "GET") == 0){
-         char buffer[1024];
-         ssize_t read_bytes;
-         while((read_bytes = read(file, buffer,sizeof(buffer)))> 0){
-            write(nfd, buffer, read_bytes);
+
+         if(strcmp(type, "HEAD") == 0){
+            char buffer[1024];
+            ssize_t read_bytes;
+            while((read_bytes = read(file, buffer,sizeof(buffer)))> 0){
+               write(nfd, buffer, read_bytes);
+            }
          }
-    
      }
      
      close(file);
