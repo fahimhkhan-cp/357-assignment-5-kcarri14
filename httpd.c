@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 void handle_cgi(int nfd, char *filename, char *query);
 
@@ -86,7 +87,7 @@ void handle_request(int nfd)
 
       char header[512];
       if(strcmp(type, "GET") == 0 || strcmp(type, "HEAD") == 0){
-         snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: %lld\r\n\r\n", file_stat.st_size);
+         snprintf(header, sizeof(header), "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: %ld\r\n\r\n", file_stat.st_size);
          write(nfd, header, strlen(header));
 
          if(strcmp(type, "GET") == 0){
