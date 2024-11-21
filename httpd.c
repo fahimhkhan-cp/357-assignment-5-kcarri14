@@ -15,34 +15,34 @@ void handle_cgi(int nfd, char *filename, char *query);
 void handle_request(int nfd)
 {
    FILE *network = fdopen(nfd, "r");
+   if(network == NULL){
+      close(nfd);
+      return;
+   }
    char *line = NULL;
    size_t size;
    ssize_t num;
 
-   if (network == NULL)
-   {
-      perror("fdopen");
-      close(nfd);
-      return;
-   }
 
    if ((num = getline(&line, &size, network)) < 0)
    {
       perror("getline failed");
+      free(line);
+      fclose(network);
       close(nfd);
       return;
    }
-     printf("are you getting here?-after getline\n");
+     //printf("are you getting here?-after getline\n");
 
    char type[8];
    char filename[1024];
    char http_version[16];
 
    int line_read = sscanf(line, "%s %s %s", type, filename, http_version);
-   printf("are you getting here?-after line read\n");
-   printf("type: %s\n" ,type);
-   printf("name: %s\n" ,filename);
-   printf("version: %s\n" ,http_version);
+   // printf("are you getting here?-after line read\n");
+   // printf("type: %s\n" ,type);
+   // printf("name: %s\n" ,filename);
+   // printf("version: %s\n" ,http_version);
    if(line_read != 3 || (strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 35\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
@@ -50,7 +50,7 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
-   printf("are you getting here?-after get \n");
+   //printf("are you getting here?-after get \n");
    if((strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: 44\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
@@ -66,25 +66,44 @@ void handle_request(int nfd)
       fclose(network);
       return;
    }
-   printf("are you getting here?-after more errors\n");
+   //printf("are you getting here?-after more errors\n");
    if(strncmp(filename, "/cgi-like/", 10) == 0){
       handle_cgi(nfd, filename, line);
    }
 
-   printf("are you getting here?-after cgi like?\n");
+   //printf("are you getting here?-after cgi like?\n");
    
-   printf("are you getting here?-before filepath\n");
+   //printf("are you getting here?-before filepath\n");
    char filepath[1024];
    snprintf(filepath, sizeof(filepath), "./%s", filename);
 
    int file = open(filepath, O_RDONLY);
-   printf("are you getting here?-after opening file\n");
+   //printf("are you getting here?-after opening file\n");
    if(file == -1){
       char *response = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 38\r\n\r\n<html><body>404 Not Found</body></html>";
       write(nfd, response, strlen(response));
+      free(line);
+      fclose(network);
+      return;
    }else{
       struct stat file_stat;
       fstat(file, &file_stat);
+      if (file == -1) {
+         perror("open failed");
+         close(file);
+         free(line);
+         fclose(network);
+         return;
+      }
+      if (fstat(file, &file_stat) == -1) {
+         perror("fstat failed");
+         close(file);
+         char *response = "HTTP/1.0 500 Internal Error\r\nContent-Type: text/html\r\nContent-Length: 45\r\n\r\n<html><body>404 Internal Error</body></html>";
+         write(nfd, response, strlen(response));
+         free(line);
+         fclose(network);
+         return;
+      }
 
       char header[512];
       if(strcmp(type, "GET") == 0 || strcmp(type, "HEAD") == 0){
@@ -92,15 +111,16 @@ void handle_request(int nfd)
          write(nfd, header, strlen(header));
 
          if(strcmp(type, "GET") == 0){
-            char buffer[1024];
+            char buffer[1024] = {0};
             ssize_t read_bytes;
             while((read_bytes = read(file, buffer,sizeof(buffer)))> 0){
                write(nfd, buffer, read_bytes);
             }
          }
      }
-     close(file);
+     
    }
+   close(file);
    free(line);
    fclose(network);
 }
@@ -134,7 +154,7 @@ void run_service(int fd)
 
 }
 void handle_cgi(int nfd, char *filename, char *query){
-   printf("are you getting here?-in cgi request?\n");
+   //printf("are you getting here?-in cgi request?\n");
    if(strncmp(filename, "/cgi-like/", 10) != 0){
       char *response = "HTTP/1.0 403 Permission Denied\r\nContent-Type: text/html\r\nContent-Length: 40\r\n\r\n<html><body>403 Permission Denied</body></html>";
       write(nfd, response, strlen(response));
@@ -142,20 +162,21 @@ void handle_cgi(int nfd, char *filename, char *query){
    }
    char file_path[1024];
    snprintf(file_path, sizeof(file_path), "./cgi-like/%s", filename + 10);
-   printf("filepath %s\n", file_path);
-   printf("are you getting here?-before fork\n");
+   //printf("filepath %s\n", file_path);
+   //printf("are you getting here?-before fork\n");
    pid_t pid = fork();
    if(pid < 0){
       const char *response = "HTTP/1.0 500 Internal Error\r\nContent-Type: text/html\r\nContent-Length: 41\r\n\r\n<html><body>500 Internal Server Error</body></html>";
       write(nfd, response, strlen(response));
       return;
    }else if(pid == 0){
-      printf("In Child process\n");
+      //printf("In Child process\n");
       char *arguments[] = {file_path, query, NULL};
       execvp(file_path, arguments);
-      printf("Child process successful\n");
+      perror("exec fail");
+      //printf("Child process successful\n");
    }else{
-      printf("In parent process\n");
+      //printf("In parent process\n");
       wait(NULL);
    }
    printf("are you getting here?-after fork\n");
@@ -189,9 +210,9 @@ int main(int argc, char *argv[]){
    }
 
    printf("listening on port: %d\n", port);
-   printf("are you getting here?-before run service\n");
+   //printf("are you getting here?-before run service\n");
    run_service(fd);
-   printf("are you getting here?-after run service\n");
+   //printf("are you getting here?-after run service\n");
    close(fd);
 
    return 0;
