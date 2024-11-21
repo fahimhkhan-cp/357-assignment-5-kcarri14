@@ -37,6 +37,9 @@ void handle_request(int nfd)
 
    int line_read = sscanf(line, "%s %s %s", type, filename, http_version);
    printf("are you getting here?-after line read\n");
+   printf("type: %s\n" ,type);
+   printf("name: %s\n" ,filename);
+   printf("version: %s\n" ,http_version);
    if(line_read != 3 || (strcmp(type, "GET") != 0 && strcmp(type, "HEAD") != 0)){
       char *response = "HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 35\r\n\r\n<html><body>400 Bad Request</body></html>";
       write(nfd, response, strlen(response));
