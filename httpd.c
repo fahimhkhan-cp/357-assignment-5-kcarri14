@@ -140,7 +140,7 @@ void run_service(int fd)
         }else if(pid == 0){
             close(fd);
             printf("Connection established\n");
-            printf("%d\n" , nfd);
+            //printf("%d\n" , nfd);
             handle_request(nfd);
             printf("Connection closed\n");
             close(nfd);
